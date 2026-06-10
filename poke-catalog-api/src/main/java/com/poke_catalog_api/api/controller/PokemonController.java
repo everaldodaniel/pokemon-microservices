@@ -1,15 +1,16 @@
 package com.poke_catalog_api.api.controller;
 
+import com.poke_catalog_api.api.dto.PokemonFilter;
 import com.poke_catalog_api.api.dto.PokemonResponseDto;
 import com.poke_catalog_api.domain.model.Pokemon;
+import com.poke_catalog_api.domain.model.PokemonType;
 import com.poke_catalog_api.domain.service.PokemonService;
+import org.springframework.data.domain.Page;
+import org.springframework.data.domain.Pageable;
 import org.springframework.http.ResponseEntity;
-import org.springframework.web.bind.annotation.GetMapping;
-import org.springframework.web.bind.annotation.PathVariable;
-import org.springframework.web.bind.annotation.RequestMapping;
-import org.springframework.web.bind.annotation.RestController;
+import org.springframework.web.bind.annotation.*;
 
-import java.util.List;
+import java.util.Set;
 import java.util.UUID;
 
 @RestController
@@ -23,8 +24,12 @@ public class PokemonController {
     }
 
     @GetMapping
-    public ResponseEntity<List<Pokemon>> findAll() {
-        return ResponseEntity.ok(pokemonService.findAll());
+    public ResponseEntity<Page<Pokemon>> findAll(
+            @RequestParam(required = false) String name,
+            @RequestParam(required = false) Set<PokemonType> types,
+            Pageable pageable) {
+        PokemonFilter filter = new PokemonFilter(name,  types);
+        return ResponseEntity.ok(pokemonService.findAll(filter, pageable));
     }
 
     @GetMapping("{id}")

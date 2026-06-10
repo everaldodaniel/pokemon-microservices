@@ -1,19 +1,22 @@
 package com.poke_catalog_api.domain.service;
 
 import com.poke_catalog_api.api.dto.PokemonDetailDto;
+import com.poke_catalog_api.api.dto.PokemonFilter;
 import com.poke_catalog_api.api.dto.PokemonResponseDto;
 import com.poke_catalog_api.domain.exception.ResourceNotFoundException;
 import com.poke_catalog_api.domain.model.Pokemon;
+import com.poke_catalog_api.domain.specifications.PokemonSpecification;
 import com.poke_catalog_api.infra.client.PokemonDetailClient;
 import com.poke_catalog_api.infra.repository.PokemonRepository;
 import io.github.resilience4j.circuitbreaker.annotation.CircuitBreaker;
 import lombok.extern.slf4j.Slf4j;
+import org.springframework.data.domain.Page;
+import org.springframework.data.domain.Pageable;
 import org.springframework.data.redis.core.RedisTemplate;
 import org.springframework.stereotype.Service;
 
 import java.time.Duration;
 import java.util.EnumSet;
-import java.util.List;
 import java.util.UUID;
 
 @Slf4j
@@ -30,13 +33,15 @@ public class PokemonService {
         this.redisTemplate = redisTemplate;
     }
 
-    public List<Pokemon> findAll() {
-        return pokemonRepository.findAll();
+    public Page<Pokemon> findAll(PokemonFilter filter, Pageable pageable) {
+        return pokemonRepository.findAll(PokemonSpecification.withFilters(filter), pageable);
     }
 
 
     @CircuitBreaker(name = "pokemonDetails", fallbackMethod = "findPokemonWithDetailCache")
     public PokemonResponseDto findPokemonWithDetail(UUID id) {
+        log.info("pokemon-catalog - findPokemonWithDetail called");
+
         Pokemon pokemon = pokemonRepository.findById(id).orElseThrow(() -> new ResourceNotFoundException("Pokemon not found"));
 
         PokemonDetailDto pokemonDetailDto = pokemonDetailClient.getPokemonDetails(pokemon.getPokedexId());
@@ -53,7 +58,9 @@ public class PokemonService {
         );
     }
 
-    public PokemonResponseDto findPokemonWithDetailCache(UUID id, Throwable e) {
+    private PokemonResponseDto findPokemonWithDetailCache(UUID id, Throwable e) {
+        log.info("pokemon-catalog - findPokemonWithDetailCache called");
+
         Pokemon pokemon = pokemonRepository.findById(id).orElseThrow(() -> new ResourceNotFoundException("Pokemon not found"));
 
         String cacheKey = "pokemon-details:" + pokemon.getPokedexId();

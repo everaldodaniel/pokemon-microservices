@@ -1,13 +1,22 @@
 package com.pokemon_details_api.domain.model;
 
 public enum WeaknessType {
-    WATER,
-    ROCK,
+    NORMAL,
     FIRE,
-    GROUND,
+    WATER,
     ELECTRIC,
+    GRASS,
     ICE,
+    FIGHTING,
+    POISON,
+    GROUND,
     FLYING,
     PSYCHIC,
-    GRASS
+    BUG,
+    ROCK,
+    GHOST,
+    DRAGON,
+    DARK,
+    STEEL,
+    FAIRY
 }
